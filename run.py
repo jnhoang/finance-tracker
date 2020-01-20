@@ -6,17 +6,27 @@ TRACKED_CATEGORIES = {
   'shared': [
     'Joint Fast Food',
     'Joint Restaurant',
-    'Grouceries',
+    'Groceries',
     'Utilities',
-    'Join Desserts',
-    'Join Coffee Shop',
+    'Joint Dessert',
+    'Joint Coffee Shop',
     'Movies & DVDs',
+    'Parking',
+
   ],
 
   'work': [
     'Work Fast Food',
     'Work Restaurant',
-  ]
+  ],
+
+  'personal': [
+    'Solo Coffeehouse',
+    'Solo Restaurant',
+    'Video Games',
+    'Mortgage & Rent',
+  ],
+
 }
 
 
@@ -40,22 +50,51 @@ def process_data(header_cols: list, raw_rows: list, year: str):
     raw_rows = [row for row in raw_rows if get_year_from_date(row['date']) == year]
   unaccounted_rows = [ row for row in raw_rows]
 
-  shared_rows =  [ row for row in raw_rows if row['category'] in TRACKED_CATEGORIES['shared'] ]
-  work_rows   =  [ row for row in raw_rows if row['category'] in TRACKED_CATEGORIES['work'] ]
+  shared_rows   , unaccounted_rows =  track_category(TRACKED_CATEGORIES['shared'], unaccounted_rows)
+  work_rows     , unaccounted_rows =  track_category(TRACKED_CATEGORIES['work'], unaccounted_rows)
+  personal_rows , unaccounted_rows =  track_category(TRACKED_CATEGORIES['personal'], unaccounted_rows)
 
-  # unaccounted rows
-  shared_row_ids   =  [row['row_id'] for row in shared_rows]
-  work_row_ids     =  [row['row_id'] for row in work_rows]
-  unaccounted_rows =  [row for row in raw_rows if row['row_id'] not in shared_row_ids]
-  unaccounted_rows =  [row for row in raw_rows if row['row_id'] not in work_row_ids]
+  # log findings
+  log_findings(
+    year,
+    raw_rows,
+    shared_rows,
+    work_rows,
+    personal_rows,
+    unaccounted_rows)
 
+  # return
   return {
     'shared_rows'      :  shared_rows,
     'work_rows'        :  work_rows,
+    'personal_rows'    :  personal_rows,
     'header_cols'      :  header_cols,
     'raw_rows'         :  raw_rows,
     'unaccounted_rows' :  unaccounted_rows,
   }
+
+
+def track_category(category, unaccounted_rows):
+  category_rows      =  []
+  uncategorized_rows =  []
+
+  for row in unaccounted_rows:
+    if row['category'] in category:
+      category_rows.append(row)
+    else:
+      uncategorized_rows.append(row)
+
+  return category_rows, uncategorized_rows
+
+
+def log_findings(year, raw_rows, shared_rows, work_rows, personal_rows, unaccounted_rows):
+  print(f'\n\n=========== year: {year} ===========\n')
+  print(f'num total_expenses    :  {len(raw_rows)}')
+  print(f'num shared_expenses   :  {len(shared_rows)}')
+  print(f'num work_expenses     :  {len(work_rows)}')
+  print(f'num personal_expenses :  {len(personal_rows)}')
+  print(f'num unaccounted rows  :  {len(unaccounted_rows)}')
+  return
 
 
 def convert_transactions():
