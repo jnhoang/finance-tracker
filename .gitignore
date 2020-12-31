@@ -2,3 +2,6 @@ transactions.csv
 /artifacts
 /venv
 .ds_store
+*.env*
+.vscode
+__pycache__
